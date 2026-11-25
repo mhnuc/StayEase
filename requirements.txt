@@ -4,3 +4,4 @@ django-widget-tweaks
 asgiref
 sqlparse
 gunicorn
+whitenoise
