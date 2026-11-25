@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Thanh toán đơn #{{ booking.booking_code }} - StayEase{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- TIÊU ĐỀ BƯỚC -->
+            <div class="text-center mb-4">
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-semibold mb-2">
+                    <i class="fa-solid fa-credit-card me-1"></i> Bước cuối cùng
+                </span>
+                <h2 class="fw-bold">Thanh Toán & Xác Nhận Đơn Phòng</h2>
+                <p class="text-muted">Mã đơn: <strong class="text-primary fs-5">{{ booking.booking_code }}</strong></p>
+            </div>
+
+            <div class="row g-4">
+                <!-- CỘT TRÁI: CHI TIẾT ĐƠN PHÒNG & HÓA ĐƠN -->
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                        <h5 class="fw-bold mb-3 border-bottom pb-2">
+                            <i class="fa-solid fa-receipt text-primary me-2"></i>Tóm Tắt Đơn Phòng
+                        </h5>
+
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="{{ booking.room.image_url|default:'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=300&q=80' }}" alt="{{ booking.room.name }}" class="rounded-3 me-3" style="width: 80px; height: 60px; object-fit: cover;">
+                            <div>
+                                <h6 class="fw-bold mb-0">{{ booking.room.name }}</h6>
+                                <small class="text-muted"><i class="fa-solid fa-hotel me-1"></i>{{ booking.room.hotel.name }}</small>
+                            </div>
+                        </div>
+
+                        <ul class="list-unstyled small text-muted border-top border-bottom py-3 mb-3">
+                            <li class="d-flex justify-content-between mb-2">
+                                <span>Khách hàng:</span>
+                                <strong class="text-dark">{{ booking.customer_name }}</strong>
+                            </li>
+                            <li class="d-flex justify-content-between mb-2">
+                                <span>Số điện thoại:</span>
+                                <strong class="text-dark">{{ booking.customer_phone }}</strong>
+                            </li>
+                            <li class="d-flex justify-content-between mb-2">
+                                <span>Thời gian lưu trú:</span>
+                                <strong class="text-dark">{{ booking.check_in|date:"d/m/Y" }} &rarr; {{ booking.check_out|date:"d/m/Y" }}</strong>
+                            </li>
+                            <li class="d-flex justify-content-between mb-2">
+                                <span>Số đêm ở:</span>
+                                <strong class="text-dark">{{ booking.total_nights }} đêm ({{ booking.num_guests }} khách)</strong>
+                            </li>
+                        </ul>
+
+                        <!-- DỊCH VỤ ĐI KÈM ĐÃ CHỌN -->
+                        {% if booking.booked_services.exists %}
+                            <h6 class="fw-bold small mb-2 text-dark"><i class="fa-solid fa-bell-concierge text-success me-1"></i>Dịch vụ đi kèm đã chọn:</h6>
+                            <ul class="list-group list-group-flush small mb-3">
+                                {% for bs in booking.booked_services.all %}
+                                    <li class="list-group-item d-flex justify-content-between px-0 py-1 bg-transparent">
+                                        <span>{{ bs.service.name }} (x{{ bs.quantity }})</span>
+                                        <span class="fw-semibold">{{ bs.total_cost|intcomma }} đ</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
+                        <!-- TỔNG CỘNG TIỀN -->
+                        <div class="mt-auto pt-3 border-top">
+                            <div class="d-flex justify-content-between small text-muted mb-1">
+                                <span>Tiền phòng:</span>
+                                <span>{{ booking.room_price_total|intcomma }} đ</span>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted mb-2">
+                                <span>Tiền dịch vụ:</span>
+                                <span>{{ booking.services_price_total|intcomma }} đ</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <span class="fw-bold">Tổng thanh toán:</span>
+                                <span class="fs-4 fw-bold text-danger">{{ booking.total_price|intcomma }} đ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CỘT PHẢI: LỰA CHỌN PHƯƠNG THỨC THANH TOÁN -->
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                        <h5 class="fw-bold mb-3 border-bottom pb-2">
+                            <i class="fa-solid fa-wallet text-primary me-2"></i>Chọn Phương Thức Thanh Toán
+                        </h5>
+
+                        <form method="POST" action="{% url 'booking:payment_process' booking.booking_code %}">
+                            {% csrf_token %}
+
+                            <!-- TAB OPTIONS -->
+                            <div class="mb-4">
+                                <!-- LỰA CHỌN 1: CHUYỂN KHOẢN VIETQR -->
+                                <div class="card border mb-3 payment-option-card">
+                                    <div class="card-body">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_method" id="method_bank" value="BANK_TRANSFER" checked>
+                                            <label class="form-check-label fw-bold d-flex align-items-center" for="method_bank">
+                                                <i class="fa-solid fa-qrcode text-primary fs-5 me-2"></i>
+                                                Chuyển khoản Ngân hàng (Quét mã VietQR)
+                                                <span class="badge bg-success-subtle text-success ms-2 small">Khuyên dùng</span>
+                                            </label>
+                                        </div>
+
+                                        <div class="mt-3 p-3 bg-light rounded-3" id="bankDetails">
+                                            <div class="row align-items-center g-3">
+                                                <div class="col-sm-5 text-center">
+                                                    <!-- MÃ QR MB BANK DO CHỦ KHÁCH SẠN CUNG CẤP -->
+                                                    <div class="position-relative d-inline-block">
+                                                        <img src="{{ qr_image_url }}" id="displayQrCode" alt="Mã QR MB Bank" class="img-fluid rounded border shadow-sm p-1 bg-white" style="max-height: 250px; cursor: pointer;" title="Bấm để xem ảnh phóng to">
+                                                    </div>
+                                                    <div class="small text-muted mt-2">
+                                                        <i class="fa-solid fa-qrcode me-1 text-primary"></i>Quét mã qua app ngân hàng
+                                                    </div>
+                                                    <div class="btn-group btn-group-sm mt-2" role="group">
+                                                        <button type="button" class="btn btn-outline-primary active py-0 px-2 small" onclick="switchQr('static', this)">Mã gốc</button>
+                                                        <button type="button" class="btn btn-outline-primary py-0 px-2 small" onclick="switchQr('dynamic', this)">Mã kèm số tiền</button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-7">
+                                                    <div class="mb-2">
+                                                        <div class="small text-muted">Ngân hàng:</div>
+                                                        <div class="fw-bold text-dark"><i class="fa-solid fa-building-columns text-primary me-1"></i>{{ bank_info.bank_name }}</div>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <div class="small text-muted">Số tài khoản:</div>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span class="fw-bold text-primary fs-5 font-monospace">{{ bank_info.account_number }}</span>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="copyText('{{ bank_info.account_number }}', this)">
+                                                                <i class="fa-regular fa-copy"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <div class="small text-muted">Chủ tài khoản:</div>
+                                                        <div class="fw-bold text-dark">{{ bank_info.account_holder }}</div>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <div class="small text-muted">Số tiền cần thanh toán:</div>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span class="fw-bold text-danger fs-5">{{ booking.total_price|intcomma }} đ</span>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="copyText('{{ booking.total_price }}', this)">
+                                                                <i class="fa-regular fa-copy"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <div class="small text-muted">Nội dung chuyển khoản:</div>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span class="fw-bold text-dark bg-white border px-2 py-1 rounded font-monospace">{{ bank_info.transfer_content }}</span>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="copyText('{{ bank_info.transfer_content }}', this)">
+                                                                <i class="fa-regular fa-copy"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- LỰA CHỌN 2: THANH TOÁN TIỀN MẶT KHI NHẬN PHÒNG -->
+                                <div class="card border mb-3 payment-option-card">
+                                    <div class="card-body">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_method" id="method_cash" value="CASH">
+                                            <label class="form-check-label fw-bold d-flex align-items-center" for="method_cash">
+                                                <i class="fa-solid fa-hand-holding-dollar text-warning fs-5 me-2"></i>
+                                                Thanh toán trực tiếp khi nhận phòng (Tiền mặt)
+                                            </label>
+                                        </div>
+                                        <div class="mt-2 text-muted small ps-4">
+                                            Bạn sẽ thanh toán số tiền <strong>{{ booking.total_price|intcomma }} đ</strong> trực tiếp cho lễ tân / chủ homestay khi nhận chìa khóa phòng.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- LỰA CHỌN 3: THẺ TÍN DỤNG / ATM (MÔ PHỎNG) -->
+                                <div class="card border mb-3 payment-option-card">
+                                    <div class="card-body">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_method" id="method_online" value="ONLINE">
+                                            <label class="form-check-label fw-bold d-flex align-items-center" for="method_online">
+                                                <i class="fa-regular fa-credit-card text-success fs-5 me-2"></i>
+                                                Thẻ Quốc tế / Thẻ ATM nội địa (Mô phỏng trực tuyến)
+                                            </label>
+                                        </div>
+                                        <div class="mt-2 text-muted small ps-4">
+                                            Thanh toán tự động mô phỏng qua cổng thanh toán bảo mật. Không yêu cầu nhập thẻ thật.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- MÃ GIAO DỊCH NẾU CÓ -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted">Mã tham chiếu / Mã giao dịch ngân hàng (nếu có)</label>
+                                <input type="text" name="transaction_code" class="form-control" placeholder="Vd: FT241198293...">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small fw-semibold text-muted">Ghi chú thanh toán</label>
+                                <textarea name="note" class="form-control" rows="2" placeholder="Ghi chú thêm cho chủ khách sạn..."></textarea>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-accent btn-lg rounded-3 fw-bold shadow-sm">
+                                    <i class="fa-solid fa-check-circle me-2"></i>Xác Nhận & Hoàn Tất Đơn Đặt
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const staticQrUrl = "{{ qr_image_url }}";
+const dynamicQrUrl = "{{ vietqr_url }}";
+
+function switchQr(type, btn) {
+    const img = document.getElementById('displayQrCode');
+    const parent = btn.parentElement;
+    parent.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    if (type === 'dynamic') {
+        img.src = dynamicQrUrl;
+    } else {
+        img.src = staticQrUrl;
+    }
+}
+
+function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check text-success"></i>';
+        setTimeout(() => {
+            btn.innerHTML = originalHtml;
+        }, 1500);
+    }).catch(() => {
+        alert('Đã sao chép: ' + text);
+    });
+}
+</script>
+{% endblock %}

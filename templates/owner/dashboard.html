@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Bảng Điều Khiển Quản Trị - StayEase{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- TIÊU ĐỀ DASHBOARD -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-chart-pie text-primary me-2"></i>Bảng Điều Khiển Chủ Khách Sạn</h2>
+            <p class="text-muted small mb-0">Quản lý đặt phòng, doanh thu, danh sách phòng và các dịch vụ đi kèm</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'booking:owner_room_create' %}" class="btn btn-primary rounded-pill">
+                <i class="fa-solid fa-plus me-1"></i> Thêm Phòng Mới
+            </a>
+            <a href="{% url 'booking:owner_service_create' %}" class="btn btn-outline-success rounded-pill">
+                <i class="fa-solid fa-bell-concierge me-1"></i> Thêm Dịch Vụ
+            </a>
+        </div>
+    </div>
+
+    <!-- 4 THẺ THỐNG KÊ (STAT CARDS) -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Tổng doanh thu</div>
+                        <h4 class="fw-bold text-success mb-0 mt-1">{{ total_revenue|intcomma }} đ</h4>
+                    </div>
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle p-3">
+                        <i class="fa-solid fa-money-bill-wave fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Tổng đơn đặt phòng</div>
+                        <h4 class="fw-bold text-primary mb-0 mt-1">{{ total_bookings_count }}</h4>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3">
+                        <i class="fa-solid fa-calendar-check fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Phòng đang ở hôm nay</div>
+                        <h4 class="fw-bold text-info mb-0 mt-1">{{ current_occupied_rooms }}</h4>
+                    </div>
+                    <div class="bg-info bg-opacity-10 text-info rounded-circle p-3">
+                        <i class="fa-solid fa-bed fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Đơn chờ xác nhận</div>
+                        <h4 class="fw-bold text-warning mb-0 mt-1">{{ pending_bookings_count }}</h4>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3">
+                        <i class="fa-solid fa-hourglass-half fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- THANH MENU ĐIỀU HƯỚNG QUẢN TRỊ -->
+    <div class="d-flex gap-2 mb-4 overflow-auto pb-2">
+        <a href="{% url 'booking:owner_dashboard' %}" class="btn btn-primary rounded-pill px-3 active">
+            <i class="fa-solid fa-chart-line me-1"></i> Tổng quan
+        </a>
+        <a href="{% url 'booking:owner_bookings_list' %}" class="btn btn-light border rounded-pill px-3">
+            <i class="fa-solid fa-list-check me-1"></i> Tất cả đơn đặt ({{ total_bookings_count }})
+        </a>
+        <a href="{% url 'booking:owner_rooms_list' %}" class="btn btn-light border rounded-pill px-3">
+            <i class="fa-solid fa-hotel me-1"></i> Quản lý phòng ({{ rooms_count }})
+        </a>
+        <a href="{% url 'booking:owner_services_list' %}" class="btn btn-light border rounded-pill px-3">
+            <i class="fa-solid fa-bell-concierge me-1"></i> Quản lý dịch vụ đi kèm
+        </a>
+    </div>
+
+    <!-- BẢNG ĐƠN ĐẶT PHÒNG GẦN ĐÂY -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Đơn Đặt Phòng Mới Nhất</h5>
+            <a href="{% url 'booking:owner_bookings_list' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+                Xem tất cả đơn &rarr;
+            </a>
+        </div>
+
+        {% if recent_bookings %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Phòng / Khách sạn</th>
+                            <th>Ngày ở</th>
+                            <th>Tổng tiền</th>
+                            <th>Thanh toán</th>
+                            <th>Trạng thái</th>
+                            <th class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        {% for b in recent_bookings %}
+                            <tr>
+                                <td><strong class="text-primary">{{ b.booking_code }}</strong></td>
+                                <td>
+                                    <div class="fw-semibold">{{ b.customer_name }}</div>
+                                    <div class="text-muted" style="font-size: 0.8rem;">{{ b.customer_phone }}</div>
+                                </td>
+                                <td>
+                                    <div>{{ b.room.name }}</div>
+                                    <div class="text-muted" style="font-size: 0.8rem;">{{ b.room.hotel.name }}</div>
+                                </td>
+                                <td>
+                                    <div>{{ b.check_in|date:"d/m" }} &rarr; {{ b.check_out|date:"d/m/Y" }}</div>
+                                    <div class="text-muted" style="font-size: 0.8rem;">{{ b.total_nights }} đêm</div>
+                                </td>
+                                <td><strong class="text-danger">{{ b.total_price|intcomma }} đ</strong></td>
+                                <td>
+                                    {% if b.payment.status == 'PAID' %}
+                                        <span class="badge bg-success-subtle text-success">Đã thanh toán</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary">Chưa thanh toán</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if b.status == 'CONFIRMED' %}
+                                        <span class="badge badge-status-confirmed">Đã xác nhận</span>
+                                    {% elif b.status == 'PENDING' %}
+                                        <span class="badge badge-status-pending">Chờ xác nhận</span>
+                                    {% elif b.status == 'CHECKED_IN' %}
+                                        <span class="badge badge-status-checked-in">Đang ở</span>
+                                    {% elif b.status == 'COMPLETED' %}
+                                        <span class="badge badge-status-completed">Hoàn thành</span>
+                                    {% else %}
+                                        <span class="badge badge-status-cancelled">Đã hủy</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <!-- Nút đổi trạng thái nhanh -->
+                                    <form method="POST" action="{% url 'booking:owner_booking_update_status' b.id %}" class="d-inline-flex gap-1">
+                                        {% csrf_token %}
+                                        <select name="status" class="form-select form-select-sm" style="width: 130px;" onchange="this.form.submit()">
+                                            {% for code, label in b.STATUS_CHOICES %}
+                                                <option value="{{ code }}" {% if b.status == code %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="fa-regular fa-folder-open display-4 mb-2"></i>
+                <p>Chưa có đơn đặt phòng nào.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

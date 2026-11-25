@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Trang chủ - Đặt phòng Khách sạn & Homestay StayEase{% endblock %}
+
+{% block content %}
+<!-- HERO BANNER -->
+<section class="hero-section text-center">
+    <div class="container py-4">
+        <h1 class="display-4 fw-bold mb-3">Tìm Chốn Dừng Chân Hoàn Hảo</h1>
+        <p class="lead mb-4 opacity-75">Hàng trăm homestay thơ mộng, khách sạn tiện nghi với giá tốt nhất và xác nhận tức thì.</p>
+    </div>
+</section>
+
+<!-- SEARCH BAR -->
+<div class="container">
+    <div class="search-card">
+        <form method="GET" action="{% url 'booking:room_list' %}">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label fw-semibold small text-muted"><i class="fa-solid fa-location-dot text-danger me-1"></i> Điểm đến / Khu vực</label>
+                    <select name="location" class="form-select form-select-lg shadow-none border">
+                        <option value="">Tất cả khu vực</option>
+                        {% for loc in locations %}
+                            <option value="{{ loc.id }}">{{ loc.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-3 col-6">
+                    <label class="form-label fw-semibold small text-muted"><i class="fa-regular fa-calendar-check text-primary me-1"></i> Nhận phòng</label>
+                    <input type="date" name="check_in" class="form-control form-control-lg shadow-none border" value="{{ today }}" min="{{ today }}">
+                </div>
+                <div class="col-lg-2 col-md-3 col-6">
+                    <label class="form-label fw-semibold small text-muted"><i class="fa-regular fa-calendar-xmark text-warning me-1"></i> Trả phòng</label>
+                    <input type="date" name="check_out" class="form-control form-control-lg shadow-none border" value="{{ tomorrow }}" min="{{ tomorrow }}">
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label fw-semibold small text-muted"><i class="fa-solid fa-user-group text-success me-1"></i> Số khách</label>
+                    <select name="guests" class="form-select form-select-lg shadow-none border">
+                        <option value="1">1 khách</option>
+                        <option value="2" selected>2 khách</option>
+                        <option value="3">3 khách</option>
+                        <option value="4">4 khách trở lên</option>
+                    </select>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <button type="submit" class="btn btn-accent btn-lg w-100 rounded-3 shadow-sm">
+                        <i class="fa-solid fa-magnifying-glass me-2"></i>Tìm Phòng Ngay
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ĐIỂM ĐẾN NỔI BẬT -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1">Điểm Đến Hấp Dẫn</h3>
+                <p class="text-muted small mb-0">Khám phá các điểm du lịch & nghỉ dưỡng được yêu thích nhất</p>
+            </div>
+            <a href="{% url 'booking:room_list' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                Xem tất cả <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            {% for loc in locations %}
+                <div class="col-lg-4 col-md-6">
+                    <a href="{% url 'booking:room_list' %}?location={{ loc.id }}" class="text-decoration-none">
+                        <div class="location-card">
+                            <img src="{{ loc.get_image }}" alt="{{ loc.name }}">
+                            <div class="location-overlay">
+                                <h4 class="fw-bold mb-1">{{ loc.name }}</h4>
+                                <p class="small text-white-50 mb-0">{{ loc.description|truncatewords:10 }}</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- PHÒNG GỢI Ý NỔI BẬT -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1">Phòng & Homestay Gợi Ý</h3>
+                <p class="text-muted small mb-0">Không gian nghỉ dưỡng tuyệt vời, dịch vụ đầy đủ và giá ưu đãi</p>
+            </div>
+            <a href="{% url 'booking:room_list' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                Xem thêm phòng <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            {% for room in featured_rooms %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-room h-100">
+                        <div class="room-img-wrapper">
+                            <img src="{{ room.get_image }}" alt="{{ room.name }}">
+                            <span class="room-badge">
+                                <i class="fa-solid fa-star text-warning me-1"></i>{{ room.hotel.star_rating }}.0 | {{ room.hotel.location.name }}
+                            </span>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="text-muted small mb-1">
+                                <i class="fa-solid fa-building text-primary me-1"></i>{{ room.hotel.name }}
+                            </div>
+                            <h5 class="fw-bold mb-2">{{ room.name }}</h5>
+                            <p class="text-muted small mb-3 flex-grow-1">
+                                <i class="fa-solid fa-users me-1 text-secondary"></i>Tối đa {{ room.capacity }} người &bull; 
+                                <i class="fa-solid fa-maximize me-1 text-secondary"></i>{{ room.area }} m² &bull; 
+                                {{ room.get_room_type_display }}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                <div>
+                                    <div class="text-muted small">Chỉ từ</div>
+                                    <div class="room-price">{{ room.price_per_night|intcomma }} <small class="text-muted fw-normal fs-6">đ/đêm</small></div>
+                                </div>
+                                <a href="{% url 'booking:room_detail' room.id %}" class="btn btn-outline-primary rounded-pill px-3">
+                                    Chi tiết <i class="fa-solid fa-chevron-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- TẠI SAO CHỌN STAYEASE -->
+<section class="py-5">
+    <div class="container text-center">
+        <h3 class="fw-bold mb-4">Trải Nghiệm Đặt Phòng Tiện Lợi & An Tâm</h3>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="p-3">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex p-3 mb-3">
+                        <i class="fa-solid fa-clock fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Kiểm tra tức thì</h5>
+                    <p class="text-muted small">Cập nhật phòng trống theo thời gian thực, không lo trùng lịch.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3">
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex p-3 mb-3">
+                        <i class="fa-solid fa-handshake-angle fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Dịch vụ đi kèm đa dạng</h5>
+                    <p class="text-muted small">Dễ dàng chọn thêm bữa sáng, thuê xe máy, đưa đón sân bay chỉ 1 chạm.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-inline-flex p-3 mb-3">
+                        <i class="fa-solid fa-qrcode fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Thanh toán linh hoạt</h5>
+                    <p class="text-muted small">Hỗ trợ quét VietQR chuyển khoản nhanh, thẻ ATM hoặc trả tại quầy.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex p-3 mb-3">
+                        <i class="fa-solid fa-shield-halved fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Xác nhận nhanh chóng</h5>
+                    <p class="text-muted small">Nhận mã đơn tức thì và dễ dàng tra cứu thông tin đặt phòng 24/7.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

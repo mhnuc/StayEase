@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Danh sách phòng - StayEase{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- BREADCRUMB & HEADER -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'booking:index' %}" class="text-decoration-none">Trang chủ</a></li>
+                    <li class="breadcrumb-item active">Danh sách phòng</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold mb-0">Tìm Thấy {{ total_found }} Phòng Phù Hợp</h2>
+            {% if check_in and check_out %}
+                <p class="text-success small mb-0 mt-1">
+                    <i class="fa-solid fa-circle-check me-1"></i>Đang hiển thị phòng trống thời gian thực từ <strong>{{ check_in }}</strong> đến <strong>{{ check_out }}</strong>
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- BỘ LỌC TÌM KIẾM BÊN TRÁI -->
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 90px; z-index: 5;">
+                <h5 class="fw-bold mb-3 d-flex align-items-center">
+                    <i class="fa-solid fa-sliders text-primary me-2"></i>Bộ Lọc Tìm Kiếm
+                </h5>
+                <form method="GET" action="{% url 'booking:room_list' %}">
+                    <!-- Từ khóa -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Từ khóa / Tên khách sạn</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                            <input type="text" name="keyword" class="form-control border-start-0" placeholder="Tên phòng, homestay..." value="{{ keyword }}">
+                        </div>
+                    </div>
+
+                    <!-- Khu vực -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Khu vực / Tỉnh thành</label>
+                        <select name="location" class="form-select">
+                            <option value="">Tất cả khu vực</option>
+                            {% for loc in locations %}
+                                <option value="{{ loc.id }}" {% if selected_location == loc.id|stringformat:"s" %}selected{% endif %}>{{ loc.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Ngày nhận / trả phòng -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Ngày nhận phòng</label>
+                        <input type="date" name="check_in" class="form-control" value="{{ check_in }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Ngày trả phòng</label>
+                        <input type="date" name="check_out" class="form-control" value="{{ check_out }}">
+                    </div>
+
+                    <!-- Số lượng khách -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Số khách tối thiểu</label>
+                        <select name="guests" class="form-select">
+                            <option value="">Không giới hạn</option>
+                            <option value="1" {% if guests == '1' %}selected{% endif %}>1 khách</option>
+                            <option value="2" {% if guests == '2' %}selected{% endif %}>2 khách</option>
+                            <option value="4" {% if guests == '4' %}selected{% endif %}>4 khách</option>
+                            <option value="6" {% if guests == '6' %}selected{% endif %}>6 khách trở lên</option>
+                        </select>
+                    </div>
+
+                    <!-- Loại phòng -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Loại phòng</label>
+                        <select name="room_type" class="form-select">
+                            <option value="">Tất cả loại phòng</option>
+                            {% for code, label in room_types %}
+                                <option value="{{ code }}" {% if room_type == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Khoảng giá -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Giá tối đa (VNĐ/đêm)</label>
+                        <input type="number" name="max_price" class="form-control" placeholder="Vd: 1500000" value="{{ max_price }}">
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary rounded-3 fw-semibold">
+                            <i class="fa-solid fa-filter me-1"></i>Áp Dụng Bộ Lọc
+                        </button>
+                        <a href="{% url 'booking:room_list' %}" class="btn btn-light rounded-3 text-muted">
+                            <i class="fa-solid fa-rotate-left me-1"></i>Xóa bộ lọc
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- DANH SÁCH PHÒNG BÊN PHẢI -->
+        <div class="col-lg-9">
+            {% if rooms %}
+                <div class="row g-4">
+                    {% for room in rooms %}
+                        <div class="col-md-6 col-xl-4">
+                            <div class="card card-room h-100">
+                                <div class="room-img-wrapper">
+                                    <img src="{{ room.get_image }}" alt="{{ room.name }}">
+                                    <span class="room-badge">
+                                        <i class="fa-solid fa-location-dot me-1 text-warning"></i>{{ room.hotel.location.name }}
+                                    </span>
+                                </div>
+                                <div class="card-body p-4 d-flex flex-column">
+                                    <div class="text-muted small mb-1">
+                                        <i class="fa-solid fa-hotel me-1 text-primary"></i>{{ room.hotel.name }}
+                                    </div>
+                                    <h5 class="fw-bold mb-2">{{ room.name }}</h5>
+                                    
+                                    <p class="text-muted small mb-3">
+                                        <span class="badge bg-light text-dark border me-1"><i class="fa-solid fa-user me-1"></i>{{ room.capacity }} người</span>
+                                        <span class="badge bg-light text-dark border me-1"><i class="fa-solid fa-maximize me-1"></i>{{ room.area }} m²</span>
+                                        <span class="badge bg-light text-dark border">{{ room.get_room_type_display }}</span>
+                                    </p>
+                                    
+                                    <p class="small text-muted flex-grow-1">
+                                        {{ room.description|truncatewords:15|default:room.amenities }}
+                                    </p>
+
+                                    <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+                                        <div>
+                                            <div class="text-muted small">Giá mỗi đêm</div>
+                                            <div class="room-price">{{ room.price_per_night|intcomma }} <small class="text-muted fs-6">đ</small></div>
+                                        </div>
+                                        <a href="{% url 'booking:room_detail' room.id %}?{% if check_in %}check_in={{ check_in }}&{% endif %}{% if check_out %}check_out={{ check_out }}&{% endif %}{% if guests %}guests={{ guests }}{% endif %}" class="btn btn-accent rounded-pill px-3">
+                                            Đặt Phòng <i class="fa-solid fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+                    <div class="py-4">
+                        <i class="fa-solid fa-bed text-muted display-1 mb-3"></i>
+                        <h4 class="fw-bold">Không tìm thấy phòng phù hợp!</h4>
+                        <p class="text-muted">Rất tiếc trong khoảng thời gian hoặc điều kiện lọc này không còn phòng trống. Hãy thử thay đổi ngày hoặc chọn khu vực khác nhé.</p>
+                        <a href="{% url 'booking:room_list' %}" class="btn btn-primary rounded-pill px-4 mt-2">
+                            <i class="fa-solid fa-rotate me-1"></i>Xem tất cả phòng
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

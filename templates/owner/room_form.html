@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - StayEase Quản trị{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'booking:owner_dashboard' %}">Bảng điều khiển</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'booking:owner_rooms_list' %}">Quản lý phòng</a></li>
+                        <li class="breadcrumb-item active">{{ title }}</li>
+                    </ol>
+                </nav>
+                <a href="{% url 'booking:owner_rooms_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+                </a>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <h4 class="fw-bold mb-4 pb-2 border-bottom"><i class="fa-solid fa-bed text-primary me-2"></i>{{ title }}</h4>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Thuộc khách sạn / Homestay *</label>
+                        {{ form.hotel }}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label small fw-semibold">Tên phòng / Số phòng *</label>
+                            {{ form.name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Loại phòng</label>
+                            {{ form.room_type }}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Sức chứa tối đa (người) *</label>
+                            {{ form.capacity }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Giá mỗi đêm (VNĐ) *</label>
+                            {{ form.price_per_night }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Diện tích (m²)</label>
+                            {{ form.area }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Tiện nghi (cách nhau bởi dấu phẩy)</label>
+                        {{ form.amenities }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Mô tả chi tiết phòng</label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Link ảnh đại diện (URL)</label>
+                        {{ form.image_url }}
+                        <div class="form-text small">Dán URL ảnh từ Unsplash hoặc dịch vụ lưu ảnh.</div>
+                    </div>
+
+                    <div class="mb-4 form-check">
+                        {{ form.is_active }}
+                        <label class="form-check-label small fw-semibold" for="id_is_active">
+                            Kích hoạt phòng này (cho phép khách tìm và đặt phòng)
+                        </label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                            <i class="fa-solid fa-save me-1"></i> Lưu thông tin phòng
+                        </button>
+                        <a href="{% url 'booking:owner_rooms_list' %}" class="btn btn-light rounded-pill px-4">
+                            Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

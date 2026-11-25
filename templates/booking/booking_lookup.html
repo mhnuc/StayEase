@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Tra cứu đơn đặt phòng - StayEase{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4">
+                <div class="text-center mb-4">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex p-3 mb-2">
+                        <i class="fa-solid fa-magnifying-glass fs-3"></i>
+                    </div>
+                    <h3 class="fw-bold">Tra Cứu Đơn Đặt Phòng</h3>
+                    <p class="text-muted small">Nhập mã đơn đặt phòng (ví dụ: BK8A9F32) và số điện thoại của bạn</p>
+                </div>
+
+                <form method="GET" action="{% url 'booking:booking_lookup' %}">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Mã đơn đặt phòng (Booking Code)</label>
+                        <input type="text" name="code" class="form-control form-control-lg text-uppercase" placeholder="Vd: BK8A9F32" required value="{{ request.GET.code }}">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-semibold">Số điện thoại đã dùng để đặt</label>
+                        <input type="text" name="phone" class="form-control form-control-lg" placeholder="Vd: 0901234567" required value="{{ request.GET.phone }}">
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-3 fw-bold">
+                            <i class="fa-solid fa-search me-1"></i> Tìm Kiếm Đơn Phòng
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- HIỂN THỊ KẾT QUẢ TÌM KIẾM -->
+            {% if booking %}
+                <div class="card border-0 shadow-lg rounded-4 p-4 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-primary mb-0">Đơn Phòng: {{ booking.booking_code }}</h5>
+                        {% if booking.status == 'CONFIRMED' %}
+                            <span class="badge badge-status-confirmed">Đã xác nhận</span>
+                        {% elif booking.status == 'PENDING' %}
+                            <span class="badge badge-status-pending">Chờ xác nhận</span>
+                        {% elif booking.status == 'CHECKED_IN' %}
+                            <span class="badge badge-status-checked-in">Đã nhận phòng</span>
+                        {% elif booking.status == 'COMPLETED' %}
+                            <span class="badge badge-status-completed">Đã hoàn thành</span>
+                        {% else %}
+                            <span class="badge badge-status-cancelled">Đã hủy</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 mb-3 small">
+                        <div class="row g-2">
+                            <div class="col-6"><strong>Khách hàng:</strong> {{ booking.customer_name }}</div>
+                            <div class="col-6"><strong>Khách sạn:</strong> {{ booking.room.hotel.name }}</div>
+                            <div class="col-6"><strong>Phòng:</strong> {{ booking.room.name }}</div>
+                            <div class="col-6"><strong>Thời gian:</strong> {{ booking.check_in|date:"d/m/Y" }} &rarr; {{ booking.check_out|date:"d/m/Y" }}</div>
+                            <div class="col-6"><strong>Tổng tiền:</strong> <span class="text-danger fw-bold">{{ booking.total_price|intcomma }} đ</span></div>
+                            <div class="col-6"><strong>Thanh toán:</strong> {{ booking.payment.get_status_display }}</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'booking:booking_success' booking.booking_code %}" class="btn btn-outline-primary btn-sm rounded-pill flex-grow-1">
+                            <i class="fa-solid fa-file-invoice me-1"></i> Xem chi tiết & In hóa đơn
+                        </a>
+                        {% if booking.payment.status == 'UNPAID' %}
+                            <a href="{% url 'booking:payment_page' booking.booking_code %}" class="btn btn-warning btn-sm rounded-pill flex-grow-1">
+                                <i class="fa-solid fa-credit-card me-1"></i> Thanh toán ngay
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Đặt phòng thành công #{{ booking.booking_code }} - StayEase{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    nav, footer, .no-print {
+        display: none !important;
+    }
+    .invoice-card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- NÚT ĐIỀU HƯỚNG NO-PRINT -->
+            <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+                <a href="{% url 'booking:index' %}" class="btn btn-outline-secondary rounded-pill">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Về trang chủ
+                </a>
+                <button onclick="window.print()" class="btn btn-primary rounded-pill px-4">
+                    <i class="fa-solid fa-print me-1"></i> In hóa đơn
+                </button>
+            </div>
+
+            <!-- CARD HÓA ĐƠN -->
+            <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 bg-white invoice-card">
+                <!-- HEADER HÓA ĐƠN -->
+                <div class="text-center mb-4">
+                    <div class="bg-success text-white rounded-circle d-inline-flex p-3 mb-3 shadow-sm">
+                        <i class="fa-solid fa-check fs-2"></i>
+                    </div>
+                    <h3 class="fw-bold text-success mb-1">Đặt Phòng Thành Công!</h3>
+                    <p class="text-muted">Cảm ơn bạn đã lựa chọn dịch vụ của chúng tôi. Dưới đây là thông tin chi tiết đơn phòng của bạn.</p>
+                </div>
+
+                <div class="row g-3 p-3 bg-light rounded-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="small text-muted">Mã đặt phòng</div>
+                        <div class="fw-bold fs-6 text-primary">{{ booking.booking_code }}</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="small text-muted">Trạng thái đơn</div>
+                        <div>
+                            {% if booking.status == 'CONFIRMED' %}
+                                <span class="badge badge-status-confirmed">Đã xác nhận</span>
+                            {% elif booking.status == 'PENDING' %}
+                                <span class="badge badge-status-pending">Chờ xác nhận</span>
+                            {% elif booking.status == 'CHECKED_IN' %}
+                                <span class="badge badge-status-checked-in">Đã nhận phòng</span>
+                            {% elif booking.status == 'COMPLETED' %}
+                                <span class="badge badge-status-completed">Đã hoàn thành</span>
+                            {% else %}
+                                <span class="badge badge-status-cancelled">Đã hủy</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="small text-muted">Thanh toán</div>
+                        <div>
+                            {% if booking.payment.status == 'PAID' %}
+                                <span class="badge bg-success">Đã thanh toán</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Chưa thanh toán</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="small text-muted">Thời điểm đặt</div>
+                        <div class="small fw-semibold text-dark">{{ booking.created_at|date:"H:i - d/m/Y" }}</div>
+                    </div>
+                </div>
+
+                <!-- CHI TIẾT KHÁCH HÀNG & PHÒNG -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold border-bottom pb-2"><i class="fa-solid fa-user me-1 text-primary"></i>Thông tin khách hàng</h6>
+                        <ul class="list-unstyled small text-muted mb-0">
+                            <li class="mb-1">Họ tên: <strong class="text-dark">{{ booking.customer_name }}</strong></li>
+                            <li class="mb-1">Số điện thoại: <strong class="text-dark">{{ booking.customer_phone }}</strong></li>
+                            <li class="mb-1">Email: <strong class="text-dark">{{ booking.customer_email }}</strong></li>
+                            {% if booking.customer_note %}
+                                <li>Ghi chú: <em class="text-dark">{{ booking.customer_note }}</em></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold border-bottom pb-2"><i class="fa-solid fa-hotel me-1 text-primary"></i>Thông tin phòng</h6>
+                        <ul class="list-unstyled small text-muted mb-0">
+                            <li class="mb-1">Phòng: <strong class="text-dark">{{ booking.room.name }}</strong></li>
+                            <li class="mb-1">Khách sạn/Homestay: <strong class="text-dark">{{ booking.room.hotel.name }}</strong></li>
+                            <li class="mb-1">Địa chỉ: <span class="text-dark">{{ booking.room.hotel.address }}</span></li>
+                            <li class="mb-1">Thời gian: <strong class="text-dark">{{ booking.check_in|date:"d/m/Y" }} &rarr; {{ booking.check_out|date:"d/m/Y" }} ({{ booking.total_nights }} đêm)</strong></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- BẢNG CHI PHÍ & DỊCH VỤ -->
+                <h6 class="fw-bold mb-2"><i class="fa-solid fa-file-invoice-dollar me-1 text-primary"></i>Chi tiết thanh toán</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-sm align-middle">
+                        <thead class="table-light small">
+                            <tr>
+                                <th>Khoản mục</th>
+                                <th class="text-center" style="width: 100px;">Đơn giá</th>
+                                <th class="text-center" style="width: 100px;">Số lượng / Đêm</th>
+                                <th class="text-end" style="width: 130px;">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            <tr>
+                                <td>Tiền phòng ({{ booking.room.name }})</td>
+                                <td class="text-center">{{ booking.room.price_per_night|intcomma }} đ</td>
+                                <td class="text-center">{{ booking.total_nights }} đêm</td>
+                                <td class="text-end fw-semibold">{{ booking.room_price_total|intcomma }} đ</td>
+                            </tr>
+                            {% for bs in booking.booked_services.all %}
+                                <tr>
+                                    <td>Dịch vụ: {{ bs.service.name }}</td>
+                                    <td class="text-center">{{ bs.price|intcomma }} đ</td>
+                                    <td class="text-center">{{ bs.quantity }} ({{ bs.service.unit }})</td>
+                                    <td class="text-end fw-semibold">{{ bs.total_cost|intcomma }} đ</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end">Tổng cộng:</th>
+                                <th class="text-end text-danger fs-5">{{ booking.total_price|intcomma }} đ</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 small text-muted">
+                    <div class="fw-bold text-dark mb-1"><i class="fa-solid fa-circle-info me-1 text-primary"></i>Lưu ý nhận phòng:</div>
+                    Giờ nhận phòng tiêu chuẩn: từ 14:00. Giờ trả phòng: trước 12:00 trưa. Khi nhận phòng, quý khách vui lòng xuất trình CMND/CCCD hoặc hộ chiếu cùng mã đặt phòng <strong>{{ booking.booking_code }}</strong> cho lễ tân.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

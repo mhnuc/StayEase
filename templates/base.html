@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}StayEase - Đặt phòng Khách sạn & Homestay{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Google Font: Be Vietnam Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --primary-dark: #0b5ed7;
+            --accent-color: #ff6b35;
+            --accent-hover: #fa5a1e;
+            --bg-light: #f8fafc;
+            --text-dark: #1e293b;
+        }
+
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--primary-color) !important;
+        }
+        .navbar-brand span {
+            color: var(--accent-color);
+        }
+
+        .btn-accent {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: #fff;
+            font-weight: 600;
+        }
+        .btn-accent:hover {
+            background-color: var(--accent-hover);
+            border-color: var(--accent-hover);
+            color: #fff;
+        }
+
+        .hero-section {
+            background: linear-gradient(rgba(13, 37, 63, 0.7), rgba(13, 37, 63, 0.8)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+            color: white;
+            padding: 80px 0;
+            border-radius: 0 0 30px 30px;
+        }
+
+        .search-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+            padding: 24px;
+            margin-top: -45px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .card-room {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            background: #fff;
+        }
+        .card-room:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+        }
+        .room-img-wrapper {
+            position: relative;
+            height: 220px;
+            overflow: hidden;
+        }
+        .room-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+        .card-room:hover .room-img-wrapper img {
+            transform: scale(1.05);
+        }
+        .room-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(4px);
+            color: white;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .room-price {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .location-card {
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            height: 220px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+        .location-card:hover {
+            transform: scale(1.02);
+        }
+        .location-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .location-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 18px;
+            color: white;
+        }
+
+        .badge-status-pending { background-color: #ffc107; color: #212529; }
+        .badge-status-confirmed { background-color: #0d6efd; color: #fff; }
+        .badge-status-checked-in { background-color: #198754; color: #fff; }
+        .badge-status-completed { background-color: #6c757d; color: #fff; }
+        .badge-status-cancelled { background-color: #dc3545; color: #fff; }
+
+        footer {
+            margin-top: auto;
+            background: #0f172a;
+            color: #94a3b8;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm py-3">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'booking:index' %}">
+                <i class="fa-solid fa-hotel me-2"></i>Stay<span>Ease</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    <li class="nav-item">
+                        <a class="nav-link active fw-medium" href="{% url 'booking:index' %}">
+                            <i class="fa-solid fa-house me-1"></i> Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" href="{% url 'booking:room_list' %}">
+                            <i class="fa-solid fa-bed me-1"></i> Khám phá phòng
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" href="{% url 'booking:booking_lookup' %}">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i> Tra cứu đơn đặt
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-2">
+                    {% if user.is_authenticated %}
+                        {% if user.is_staff or user.hotels.exists or user.is_superuser %}
+                            <a href="{% url 'booking:owner_dashboard' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                <i class="fa-solid fa-chart-line me-1"></i> Quản trị Homestay
+                            </a>
+                        {% endif %}
+                        <div class="dropdown">
+                            <button class="btn btn-light dropdown-toggle rounded-pill px-3" type="button" data-bs-toggle="dropdown">
+                                <i class="fa-solid fa-circle-user text-primary me-1"></i> {{ user.username }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                {% if user.is_staff or user.is_superuser %}
+                                    <li><a class="dropdown-item" href="/admin/" target="_blank"><i class="fa-solid fa-shield-halved me-2"></i>Trang admin</a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{% url 'booking:owner_dashboard' %}"><i class="fa-solid fa-gauge me-2"></i>Bảng điều khiển</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{% url 'booking:logout' %}"><i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất</a></li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'booking:login' %}" class="btn btn-outline-secondary rounded-pill px-3">
+                            <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Đăng nhập
+                        </a>
+                        <a href="{% url 'booking:register' %}" class="btn btn-primary rounded-pill px-3">
+                            <i class="fa-solid fa-user-plus me-1"></i> Đăng ký
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- THÔNG BÁO FLASH MESSAGES -->
+    <div class="container mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
+                    {% if message.tags == 'success' %}<i class="fa-solid fa-circle-check me-2"></i>{% endif %}
+                    {% if message.tags == 'error' or message.tags == 'danger' %}<i class="fa-solid fa-triangle-exclamation me-2"></i>{% endif %}
+                    {% if message.tags == 'warning' %}<i class="fa-solid fa-circle-exclamation me-2"></i>{% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="pt-5 pb-3">
+        <div class="container">
+            <div class="row g-4 mb-4">
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="text-white fw-bold"><i class="fa-solid fa-hotel me-2"></i>Stay<span class="text-warning">Ease</span></h5>
+                    <p class="small text-muted mt-2">
+                        Nền tảng đặt phòng khách sạn & homestay thông minh. Tìm kiếm nhanh, kiểm tra phòng trống theo thời gian thực và thanh toán tiện lợi.
+                    </p>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="text-white fw-semibold mb-3">Điểm đến</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="{% url 'booking:room_list' %}?keyword=Đà+Lạt" class="text-decoration-none text-muted">Đà Lạt</a></li>
+                        <li class="mb-2"><a href="{% url 'booking:room_list' %}?keyword=Sa+Pa" class="text-decoration-none text-muted">Sa Pa</a></li>
+                        <li class="mb-2"><a href="{% url 'booking:room_list' %}?keyword=Đà+Nẵng" class="text-decoration-none text-muted">Đà Nẵng</a></li>
+                        <li class="mb-2"><a href="{% url 'booking:room_list' %}?keyword=Phú+Quốc" class="text-decoration-none text-muted">Phú Quốc</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="text-white fw-semibold mb-3">Dành cho đối tác</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="{% url 'booking:owner_dashboard' %}" class="text-decoration-none text-muted">Quản trị Khách sạn / Homestay</a></li>
+                        <li class="mb-2"><a href="{% url 'booking:owner_room_create' %}" class="text-decoration-none text-muted">Đăng phòng mới</a></li>
+                        <li class="mb-2"><a href="{% url 'booking:owner_services_list' %}" class="text-decoration-none text-muted">Quản lý dịch vụ đi kèm</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="text-white fw-semibold mb-3">Hỗ trợ 24/7</h6>
+                    <p class="small text-muted mb-1"><i class="fa-solid fa-phone me-2 text-warning"></i>Hotline: 0967880306</p>
+                    <p class="small text-muted mb-1"><i class="fa-solid fa-envelope me-2 text-warning"></i>Email: stayeasecenter@gmail.com</p>
+                    <p class="small text-muted"><i class="fa-solid fa-location-dot me-2 text-warning"></i>Việt Nam</p>
+                </div>
+            </div>
+            <hr class="border-secondary opacity-25">
+            <div class="text-center small text-muted">
+                &copy; 2026 StayEase.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
