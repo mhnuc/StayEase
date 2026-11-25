@@ -60,7 +60,7 @@ class Command(BaseCommand):
             {
                 'name': 'Phú Quốc',
                 'slug': 'phu-quoc',
-                'image_url':"/static/images/dalat.jpg",
+                'image_url': '"C:\Users\MINH QUOC\24CT1 - NguyenMinhQuoc\Django\static\images\phu-quoc-17506756503251936667562.jpg"',
                 'description': 'Đảo ngọc thiên đường với biển xanh màu ngọc bích, bãi Sao, bãi Khem và các khu nghỉ dưỡng đẳng cấp.'
             },
         ]
